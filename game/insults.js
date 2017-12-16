@@ -34,8 +34,10 @@ export const defenses = {
     DEFENSE_NOONE: 'Too bad no one\'s ever heard of YOU at all.',
     DEFENSE_USED: 'I\'d be in real trouble if you ever used them.',
     DEFENSE_COMFORTABLE: 'I wanted to make sure you\'d feel comfortable with me.',
+};
 
-    // Useless ones
+// Useless ones
+export const badDefenses = {
     DEFENSE_RUBBER: 'I am rubber, you are glue',
     DEFENSE_YEAH: 'Oh yeah?',
     DEFENSE_SHAKING: 'I\'m shaking, I\'m shaking!',

@@ -1,26 +1,49 @@
 import React from 'react';
 import { Image, Text, View, ScrollView } from 'react-native';
 import _ from 'lodash';
+import AnimatedEllipsis from 'react-native-animated-ellipsis';
 import Screen from '../screen/screen';
-import Status from './status';
-import { attacks, defenses, map } from './insults';
+import Status from './status/status';
+import SelectableList from '../selectable-list/selectable-list';
+import { attacks, defenses, badDefenses, map } from './insults';
+import commonStyle from '../style/common';
 
 const
     TURN_PLAYER = 'turn-player',
     TURN_ENEMY = 'turn-enemy';
 
+const
+    STATUS_ENEMY_ATTACK = 'enemy-attack',
+    STATUS_PLAYER_DEFENSE = 'player-defense',
+    STATUS_PLAYER_CHOOSE = 'player-choose',
+    STATUS_PLAYER_ATTACK = 'player-attack',
+    STATUS_ENEMY_DEFENSE = 'enemy-defense'
+    STATUS_VICTORY = 'victory'
+    STATUS_DEFEAT = 'defeat';
+
 const styles = {
     dialogueContainer: {
         borderColor: 'blue',
-        borderWidth: 1,
+        // borderWidth: 1,
     },
     dialogueTitle: {
         textAlign: 'center'
     },
     dialogueText: {
-        // flex: 1,
-        fontFamily: 'monkey-island',
-        marginBottom: 20,
+        ...commonStyle.text,
+
+        paddingHorizontal: 10,
+        paddingVertical: 15,
+
+        textShadowColor: 'black',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 0,
+
+        borderColor: 'green',
+        // borderWidth: 1
+    },
+    ellipsis: {
+        textAlign: 'center'
     }
 };
 
@@ -30,26 +53,21 @@ export default class Game extends React.Component {
         this.state = {
             ownLives: 4,
             enemyLives: 4,
-            turn: TURN_ENEMY,
-            playerResponse: null,
-            enemyResponse: null
+            turn: STATUS_ENEMY_ATTACK,
+            attack: _.sample(attacks),
+            defense: null
         };
-        this.attacks = [];
-        this.defenses = [
-            defenses.DEFENSE_RUBBER,
-            defenses.DEFENSE_YEAH,
-            defenses.DEFENSE_SHAKING,
-            defenses.DEFENSE_GIVEUP
-        ];
+        this.playerAttacks = Object.values(attacks);
+        this.playerDefenses = Object.values(defenses);
     }
     render() {
-        return <Screen>
+        return <Screen backgroundImage={require('./img/fight-background.png')}>
             {this.renderGameStatus()}
             {this.renderDialogue()}
         </Screen>;
     }
 
-    renderGameStatus(){
+    renderGameStatus() {
         const props = {
             ownLives: this.state.ownLives,
             enemyLives: this.state.enemyLives
@@ -58,15 +76,84 @@ export default class Game extends React.Component {
     }
 
     renderDialogue() {
-        if (this.state.turn === TURN_ENEMY) {
-            return this.renderEnemyTurn();
+        const { ownLives, enemyLives } = this.state;
+        if (ownLives === 0) {
+            return this.renderFinish(false);
         }
-        return this.renderPlayerTurn();
+        if (enemyLives === 0) {
+            return this.renderFinish(true);
+        }
+
+        switch (this.state.turn) {
+            case STATUS_ENEMY_ATTACK:
+                return this.renderEnemyAttack();
+            case STATUS_PLAYER_DEFENSE:
+                return this.renderPlayerDefense();
+            case STATUS_PLAYER_CHOOSE:
+                return this.renderPlayerChoose();
+            case STATUS_PLAYER_ATTACK:
+                return this.renderPlayerAttack();
+            case STATUS_ENEMY_DEFENSE:
+                return this.renderEnemyDefense();
+        }
+    }
+
+    renderEnemyAttack() {
+        const { attack } = this.state;
+        const { playerDefenses } = this;
+
+        return <View style={styles.dialogueContainer}>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>PIRATE:</Text>
+            <Text style={styles.dialogueText}>{attack}</Text>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>CHOOSE YOUR REPLY:</Text>
+            <SelectableList items={playerDefenses} handleSelect={defense => this.handleSelectDefense(defense)} />
+        </View>;
+    }
+
+    renderPlayerDefense() {
+        const { attack, defense } = this.state;
+
+        return <View style={styles.dialogueContainer}>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>PIRATE:</Text>
+            <Text style={styles.dialogueText}>{attack}</Text>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>YOU:</Text>
+            <Text style={styles.dialogueText}>{defense}</Text>
+        </View>;
+    }
+
+    renderPlayerChoose() {
+        const { playerAttacks } = this;
+
+        return <View style={styles.dialogueContainer}>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>CHOOSE YOUR INSULT:</Text>
+            <SelectableList items={playerAttacks} handleSelect={attack => this.handleSelectAttack(attack)} />
+        </View>;
+    }
+
+    renderPlayerAttack() {
+        const { attack } = this.state;
+
+        return <View style={styles.dialogueContainer}>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>YOU:</Text>
+            <Text style={styles.dialogueText}>{attack}</Text>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>PIRATE:</Text>
+            <AnimatedEllipsis style={[styles.dialogueText, styles.ellipsis]}/>
+        </View>;
+    }
+
+    renderEnemyDefense() {
+        const { attack, defense } = this.state;
+
+        return <View style={styles.dialogueContainer}>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>YOU:</Text>
+            <Text style={styles.dialogueText}>{attack}</Text>
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>PIRATE:</Text>
+            <Text style={styles.dialogueText}>{defense}</Text>
+        </View>;
     }
 
     renderEnemyTurn() {
-        const values = Object.values(attacks);
-        const attack = values[rand(0, values.length - 1)];
+        const attack = _.sample(attacks);
         const { defenses } = this;
 
         return <View style={styles.dialogueContainer}>
@@ -78,59 +165,70 @@ export default class Game extends React.Component {
                     <Text 
                         key={defense}
                         style={styles.dialogueText}
-                        onPress={() => this.resolveTurn(TURN_ENEMY, attack, defense)}>
+                        onPress={() => this.handleResponse()}>
                         - {defense}
                     </Text>)}
             </ScrollView>
         </View>;
     }
 
-    renderPlayerTurn() {
-        // const values = Object.values(attacks);
-        // const attack = Object.values(attacks)[rand(0, values.length - 1)];
-        const { attacks } = this;
-        const { enemyResponse } = this.state;
-
+    renderFinish(isVictory){
         return <View style={styles.dialogueContainer}>
-            <Text style={[styles.dialogueTitle, styles.dialogueText]}>CHOOSE YOUR INSULT:</Text>
-            {attacks.map(attack => 
-                <Text 
-                    style={styles.dialogueText}
-                    onPress={() => this.resolveTurn(TURN_PLAYER, attack, map[attack])}>
-                    - {attack}
-                </Text>)}
-            {enemyResponse ? 
-                <View>
-                    <Text style={[styles.dialogueTitle, styles.dialogueText]}>PIRATE:</Text>
-                    <Text style={[styles.dialogueText]}>{enemyResponse}</Text>
-                </View>
-                : null}
+            <Text style={[styles.dialogueTitle, styles.dialogueText]}>
+                {isVictory ? 'VICTORY!' : 'DEFEAT'}
+            </Text>
+            <Text 
+                style={[styles.dialogueTitle, styles.dialogueText]}
+                onPress={this.props.handleGoToMainMenu}>
+                Return to main menu
+            </Text>
         </View>;
     }
 
-    
+    handleSelectDefense(defense)  {
+        const { attack } = this.state;
+        this.setState({ turn: STATUS_PLAYER_DEFENSE, defense });
+        this.resolveFight(STATUS_PLAYER_DEFENSE, attack, defense);
+        setTimeout(() => {
+            this.setState({
+                turn: STATUS_PLAYER_CHOOSE,
+                attack: null,
+                defense: null
+            });
+        }, 2000);
+    }
 
-    resolveTurn(turn, attack, defense) {
-        if (turn === TURN_ENEMY) {
-            this.attacks = _.uniq([...this.attacks, attack]);
+    handleSelectAttack(attack) {
+        this.setState({ turn: STATUS_PLAYER_ATTACK, attack });
+        setTimeout(() => {
+            const defense = _.random(0, 1) === 0 ? map[attack] : _.sample(defenses);
+            this.resolveFight(STATUS_PLAYER_ATTACK, attack, defense);
+            this.setState({ turn: STATUS_ENEMY_DEFENSE, defense });
+
+            setTimeout(() => {
+                this.setState({ 
+                    turn: STATUS_ENEMY_ATTACK,
+                    attack: _.sample(attacks),
+                    defense: null
+                });
+            }, 2000);
+
+        }, 1000);
+    }
+
+    resolveFight(turn, attack, defense) {
+        if (turn === STATUS_PLAYER_DEFENSE) {
             if (isDefenseSuccess(attack, defense)) {
                 this.decrementEnemyLives();
             } else {
                 this.decrementPlayerLives();
             }
-            this.setState({ turn: TURN_PLAYER });
         } else {
-            this.setState({ enemyResponse: defense });
-            setTimeout(() => {
-                this.setState({ enemyResponse: null });
-                this.defenses = _.uniq([...this.defenses, defense]);
-                if (isDefenseSuccess(attack, defense)) {
-                    this.decrementPlayerLives();
-                } else {
-                    this.decrementEnemyLives();
-                }
-                this.setState({ turn: TURN_ENEMY });
-            }, 4000);
+            if (isDefenseSuccess(attack, defense)) {
+                this.decrementPlayerLives();
+            } else {
+                this.decrementEnemyLives();
+            }
         }
     }
 
@@ -142,7 +240,5 @@ export default class Game extends React.Component {
         this.setState({ enemyLives: this.state.enemyLives - 1 });
     }
 }
-
-const rand = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
 
 const isDefenseSuccess = (attack, defense) => map[attack] === defense;

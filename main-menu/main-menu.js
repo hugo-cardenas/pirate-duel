@@ -1,10 +1,18 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, ImageBackground } from 'react-native';
 import { Font } from 'expo';
+import Screen from '../screen/screen';
+import commonStyle from '../style/common';
+
+const images = {
+    title: require('./img/pirate-duel.png'),
+    background: require('./img/background.png')
+};
 
 const
     STATUS_MAIN_MENU = 'main-menu',
     STATUS_GAME = 'game';
+
 
 const styles = StyleSheet.create({
     background: {
@@ -13,31 +21,40 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,1)'
     },
     container: {
-        flex: 1,
+
         // backgroundColor: 'black',
+
+    },
+    menu: {
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'flex-start',
-        paddingTop: '45%',
         backgroundColor: 'rgba(0, 0, 0, 0)'
     },
     title: {
+        marginTop: '45%',
+        marginBottom: 40,
         resizeMode: 'contain',
         width: '95%'
     },
-    menu: {
+    list: {
         marginTop: 60,
     },
-    menuItem: {
-        color: '#b143a8',
-        fontFamily: 'monkey-island',
+    item: {
+        ...commonStyle.text,
         fontSize: 25,
         fontWeight: 'bold',
-        marginBottom: 40,
-        textAlign: 'center'
-    },
+        marginBottom: 10,
 
-    item: {
-        // color: ''
+        paddingVertical: 25,
+        paddingHorizontal: 70,
+
+        textAlign: 'center',
+
+        textShadowOffset: { width: 0, height: 2 },
+
+        // borderWidth: 1,
+        borderColor: 'red'
     }
 });
 
@@ -52,41 +69,26 @@ export default class MainMenu extends React.Component {
         };
     }
 
-    async componentDidMount() {
-        await Font.loadAsync({
-            'monkey-island': require('../assets/fonts/mifont/MonkeyIsland-1990.ttf'),
-        });
-        this.setState({ isFontLoaded: true })
-    }
-
     render() {
-        const { navigate } = this.props.navigation;
-        
-        if (!this.state.isFontLoaded) {
-            return null;
-        }
-
-        return <ImageBackground source={require('./background.png')} style={styles.background}>
-            <View style={styles.container}>
+        return <Screen backgroundImage={images.background}>
+            <View style={styles.menu}>
                 {this.renderTitle()}
-                {this.renderMenu()}
+                {this.renderMenuList()}
             </View>
-        </ImageBackground>;
+        </Screen>;
     }
 
     renderTitle() {
-        return <Image source={require('./Pirate-Duel.png')} style={styles.title}/>;
+        return <Image source={images.title} style={styles.title}/>;
     }
 
-    renderMenu() {
-        return <View style={styles.menu}>
-            {this.renderMenuItem('New game')}
-            {this.renderMenuItem('Stats')}
-            {this.renderMenuItem('Insults')}
+    renderMenuList() {
+        const { handleNewGame } = this.props;
+
+        return <View style={styles.menuList}>
+            <Text style={styles.item} onPress={handleNewGame}>New duel</Text>
+            <Text style={styles.item}>Stats</Text>
+            <Text style={styles.item}>Insults</Text>
         </View>;
-    }
-
-    renderMenuItem(text) {
-        return <Text style={styles.menuItem}>{text}</Text>;
     }
 }
