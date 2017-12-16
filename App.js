@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image, ImageBackground } from 'react-native';
 import { Font } from 'expo';
-import Game from './Game/Game';
-import Screen from './Screen/Screen';
+import Game from './game/game';
+import Screen from './screen/screen';
 
 const
     STATUS_MAIN_MENU = 'main-menu',
@@ -52,7 +52,9 @@ export default class App extends React.Component {
         super();
         this.state = {
             isFontLoaded: false,
-            status: STATUS_MAIN_MENU
+            status: STATUS_MAIN_MENU,
+            attacks: [],
+            defenses: []
         };
     }
 
@@ -78,8 +80,10 @@ export default class App extends React.Component {
 
     renderMainMenu() {
         return <Screen backgroundImage={require('./background.png')}>
-            {this.renderTitle()}
-            {this.renderMenuList()}
+            <View style={styles.menu}>
+                {this.renderTitle()}
+                {this.renderMenuList()}
+            </View>
         </Screen>;
     }
 
@@ -89,7 +93,7 @@ export default class App extends React.Component {
 
     renderMenuList() {
         return <View style={styles.menuList}>
-            <Text style={styles.menuItem} onPress={() => this.setState({ status:STATUS_GAME })}>New game</Text>
+            <Text style={styles.menuItem} onPress={() => this.setState({ status:STATUS_GAME })}>New duel</Text>
             <Text style={styles.menuItem}>Stats</Text>
             <Text style={styles.menuItem}>Insults</Text>
         </View>;

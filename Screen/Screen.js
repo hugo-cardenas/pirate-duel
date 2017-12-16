@@ -8,10 +8,17 @@ const styles = StyleSheet.create({
     },
     container: {
         // flex: 1,
+        // flexDirection: 'column',
         // alignItems: 'center',
-        justifyContent: 'flex-start',
-        // paddingTop: '45%',
-        backgroundColor: 'rgba(0, 0, 0, 0)'
+        // justifyContent: 'flex-start',
+        
+        marginHorizontal: 20,
+        marginTop: 40,
+        marginBottom: 20,
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+
+        borderColor: '#000000',
+        borderWidth: 1,
     }
 });
 
