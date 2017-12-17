@@ -265,8 +265,10 @@ export default class Game extends React.Component {
 
         this.setTimeout(() => {
             const defense = _.random(0, 1) === 0 ? map[attack] : _.sample(badDefenses);
-            this.playerDefenses = _.uniq([defense, ...this.playerDefenses]);
-
+            if (!this.playerDefenses.includes(defense)) {
+                this.playerDefenses.unshift(defense);
+            }
+            
             const isPlayerVictory = this.isPlayerVictory(STATUS_ENEMY_DEFENSE, attack, defense);
             const lives = this.getNextStateLives(isPlayerVictory);
 
@@ -335,7 +337,9 @@ export default class Game extends React.Component {
 
     setNewEnemyAttack() {
         const attack = _.sample(attacks);
-        this.playerAttacks = _.uniq([attack, ...this.playerAttacks]);
+        if (!this.playerAttacks.includes(attack)) {
+            this.playerAttacks.unshift(attack);
+        }
         this.setState({
             turn: STATUS_ENEMY_ATTACK,
             attack,
