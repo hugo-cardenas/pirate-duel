@@ -3,6 +3,7 @@ import { StyleSheet, View, ImageBackground } from 'react-native';
 
 const styles = StyleSheet.create({
     background: {
+        backgroundColor: 'black',
         height: '100%',
         width: '100%'
     },

@@ -24,7 +24,10 @@ export default class SelectableList extends Component {
         const { items, handleSelect } = this.props;
         const propStyle = this.props.style || {};
 
-        return <ScrollView style={propStyle.list}>
+        const style = propStyle.list
+        // const style = {height: 10};
+
+        return <ScrollView style={style}>
             {items.map(item => 
                 <Text 
                     key={item} 

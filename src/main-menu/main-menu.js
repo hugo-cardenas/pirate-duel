@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { StyleSheet, Text, View, Image, ImageBackground } from 'react-native';
 import { Font } from 'expo';
 import Screen from '../screen/screen';
@@ -20,11 +20,6 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: 'rgba(0,0,0,1)'
     },
-    container: {
-
-        // backgroundColor: 'black',
-
-    },
     menu: {
         flex: 1,
         alignItems: 'center',
@@ -32,10 +27,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0)'
     },
     title: {
-        marginTop: '45%',
+        // ...commonStyle.text,
+        // fontSize: 35,
+        marginTop: '35%',
         marginBottom: 40,
         resizeMode: 'contain',
-        width: '95%'
+        width: '95%',
+        // borderColor: 'red',
+        // borderWidth: 1,
     },
     list: {
         marginTop: 60,
@@ -47,48 +46,42 @@ const styles = StyleSheet.create({
         marginBottom: 10,
 
         paddingVertical: 25,
-        paddingHorizontal: 70,
+        paddingHorizontal: 30,
 
         textAlign: 'center',
 
         textShadowOffset: { width: 0, height: 2 },
 
-        // borderWidth: 1,
         borderColor: 'red'
+        // borderWidth: 1,
     }
 });
 
-export default class MainMenu extends React.Component {
-    static navigationOptions = {
-        title: 'Main menu',
-    };
-    constructor() {
-        super();
-        this.state = {
-            isFontLoaded: false,
-        };
-    }
-
+export default class MainMenu extends Component {
     render() {
         return <Screen backgroundImage={images.background}>
             <View style={styles.menu}>
-                {this.renderTitle()}
+                {renderTitle()}
                 {this.renderMenuList()}
             </View>
         </Screen>;
     }
 
-    renderTitle() {
-        return <Image source={images.title} style={styles.title}/>;
-    }
-
     renderMenuList() {
-        const { handleNewGame } = this.props;
+        const { handleNewGame, handleStats, handleInsults, handleInfo } = this.props;
 
         return <View style={styles.menuList}>
-            <Text style={styles.item} onPress={handleNewGame}>New duel</Text>
-            <Text style={styles.item}>Stats</Text>
-            <Text style={styles.item}>Insults</Text>
+            {renderItem(handleNewGame, 'New duel')}
+            {renderItem(handleStats, 'Stats')}
+            {renderItem(handleInsults, 'Insults')}
+            {renderItem(handleInfo, 'What\'s this?')}
         </View>;
     }
 }
+
+const renderTitle = () =>
+    // <Text style={styles.title}>Pirate Duel</Text>;
+    <Image source={images.title} style={styles.title} />;
+
+const renderItem = (onPress, text) => 
+    <Text style={styles.item} onPress={onPress}>{text}</Text>;

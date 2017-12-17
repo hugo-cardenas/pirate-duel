@@ -19,7 +19,7 @@ const styles = {
         marginBottom: 20,
 
         borderColor: 'red',
-        borderWidth: 1
+        // borderWidth: 1
     },
     fighterStatus: {
         flex: 1,
@@ -28,7 +28,7 @@ const styles = {
         alignItems: 'center',
 
         borderColor: 'black',
-        borderWidth: 1
+        // borderWidth: 1
     },
     text: {
         ...commonStyle.text,
@@ -40,6 +40,8 @@ const styles = {
         borderWidth: 1
     },
     avatar: {
+        paddingVertical: 10,
+
         flex: 4,
         resizeMode: 'contain',
         height: '100%',
@@ -67,9 +69,9 @@ export default class Status extends Component {
     }
 
     render() {
-        const { ownLives, enemyLives } = this.props;
+        const { playerLives, enemyLives } = this.props;
         return <View style={styles.gameStatus}>
-            {this.renderFighterStatus('YOU', guybrush, ownLives)}
+            {this.renderFighterStatus('YOU', guybrush, playerLives)}
             {this.renderFighterStatus('PIRATE', this.pirate , enemyLives)}
         </View>;
     }
