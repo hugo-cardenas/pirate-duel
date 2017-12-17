@@ -13,6 +13,24 @@ const images = {
     background: require('./img/fight-background.png')
 };
 
+const pirates = [
+    {
+        name: 'UGLY PIRATE',
+        color: 'yellow',
+        img: require('./status/img/pirate1.png'),
+    },
+    {
+        name: 'STINKY PIRATE',
+        color: 'red',
+        img: require('./status/img/pirate2.png'),
+    },
+    {
+        name: 'DIRTY PIRATE',
+        color: 'orange',
+        img: require('./status/img/pirate3.png'),
+    }
+];
+
 const
     TURN_PLAYER = 'turn-player',
     TURN_ENEMY = 'turn-enemy';
@@ -24,7 +42,7 @@ const
     STATUS_PLAYER_CHOOSE = 'player-choose',
     STATUS_PLAYER_ATTACK = 'player-attack',
     STATUS_ENEMY_DEFENSE = 'enemy-defense',
-    STATUS_VICTORY = 'victory'
+    STATUS_VICTORY = 'victory',
     STATUS_DEFEAT = 'defeat';
 
 const styles = {
@@ -44,12 +62,19 @@ const styles = {
         borderColor: 'green',
         // borderWidth: 1
     },
-
+    infoText: {
+        color: 'grey',
+        textAlign: 'center'
+    },
+    buttonText: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        textAlign: 'center'
+    },
     attackList: {
-        height: 375
+        height: 360
     },
     defenseList: {
-        height: 280
+        height: 250
     },
     ellipsis: {
         textAlign: 'center'
@@ -60,8 +85,9 @@ export default class Game extends React.Component {
     constructor(props) {
         super();
         this.state = {
-            playerLives: 2,
-            enemyLives: 1,
+            pirate: _.sample(pirates),
+            playerLives: 3,
+            enemyLives: 3,
             turn: STATUS_ENEMY_THINKING_ATTACK,
             attack: null,
             defense: null,
@@ -90,15 +116,25 @@ export default class Game extends React.Component {
     }
 
     renderTopMenu() {
-        const { handleExit } = this.props;
-        return <TopMenu handleExit={handleExit} />;
+        const props = { handleExit: this.props.handleExit };
+        return <TopMenu {...props}/>;
     }
 
     renderGameStatus() {
+        const { turn } = this.state;
+        const isPlayerActive = [
+            STATUS_PLAYER_CHOOSE,
+            STATUS_PLAYER_ATTACK,
+            STATUS_ENEMY_DEFENSE
+        ].includes(turn);
+
         const props = {
+            pirate: this.state.pirate,
+            isPlayerActive,
             playerLives: this.state.playerLives,
             enemyLives: this.state.enemyLives
         };
+
         return <Status {...props} />
     }
 
@@ -153,7 +189,7 @@ export default class Game extends React.Component {
             {renderLine(attack)}
             {renderTitle('YOU:')}
             {renderLine(defense)}
-            {renderTitle(isDefenseSuccess ? 'YOU WIN THIS ROUND' : 'THE PIRATE WINS THIS ROUND')}
+            {renderInfoLine(isDefenseSuccess ? 'YOU WIN THIS ROUND' : 'PIRATE WINS THIS ROUND')}
         </View>;
     }
 
@@ -188,7 +224,7 @@ export default class Game extends React.Component {
             {renderLine(attack)}
             {renderTitle('PIRATE:')}
             {renderLine(defense)}
-            {renderTitle(isDefenseSuccess ? 'THE PIRATE WINS THIS ROUND' : 'YOU WIN THIS ROUND')}
+            {renderInfoLine(isDefenseSuccess ? 'PIRATE WINS THIS ROUND' : 'YOU WIN THIS ROUND')}
         </View>;
     }
 
@@ -196,23 +232,23 @@ export default class Game extends React.Component {
         return <View style={styles.dialogueContainer}>
             {renderTitle(isVictory ? 'VICTORY!' : 'DEFEAT')}
             <Text 
-                style={[styles.dialogueTitle, styles.dialogueText]}
+                style={[styles.dialogueText, styles.buttonText]}
                 onPress={() => this.handleFinish()}>
                 Return to main menu
-            </Text>
+                </Text>
         </View>;
     }
 
     handleSelectDefense(defense)  {
         const { attack } = this.state;
         const isPlayerVictory = this.isPlayerVictory(STATUS_PLAYER_DEFENSE, attack, defense);
-        const lives = this.getLivesNextState(isPlayerVictory);
+        const lives = this.getNextStateLives(isPlayerVictory);
 
-        this.setState({ 
+        this.setState({
             turn: STATUS_PLAYER_DEFENSE,
             defense,
             ...lives,
-            isDefenseSuccess: isPlayerVictory 
+            isDefenseSuccess: isPlayerVictory
         });
 
         if (lives.playerLives === 0) {
@@ -221,19 +257,37 @@ export default class Game extends React.Component {
             this.setTimeout(() => this.setVictory(), 3000);
         } else {
             this.setTimeout(() => this.setPlayerChoose(), 3000);
-        }        
+        }
     }
 
     handleSelectAttack(attack) {
         this.setState({ turn: STATUS_PLAYER_ATTACK, attack });
 
         this.setTimeout(() => {
-            this.setEnemyDefense(attack);
+            const defense = _.random(0, 1) === 0 ? map[attack] : _.sample(badDefenses);
+            this.playerDefenses = _.uniq([defense, ...this.playerDefenses]);
 
-            this.setTimeout(() => {
-                this.setEnemyThinkingAttack();
-                this.setTimeout(() => this.setNewEnemyAttack(), 3000);
-            }, 3000);
+            const isPlayerVictory = this.isPlayerVictory(STATUS_ENEMY_DEFENSE, attack, defense);
+            const lives = this.getNextStateLives(isPlayerVictory);
+
+            this.setState({
+                turn: STATUS_ENEMY_DEFENSE,
+                defense,
+                ...lives,
+                isDefenseSuccess: !isPlayerVictory
+            });
+
+            if (lives.playerLives === 0) {
+                this.setTimeout(() => this.setDefeat(), 3000);
+            } else if (lives.enemyLives === 0) {
+                this.setTimeout(() => this.setVictory(), 3000);
+            } else {
+                this.setTimeout(() => {
+                    this.setEnemyThinkingAttack();
+                    this.setTimeout(() => this.setNewEnemyAttack(), 3000);
+                }, 3000);
+            }
+
         }, 3000);
     }
 
@@ -241,52 +295,26 @@ export default class Game extends React.Component {
         const { handleFinish } = this.props;
         const { status } = this.state;
         const { playerAttacks, playerDefenses } = this;
-        
-        handleFinish({ 
+
+        handleFinish({
             isVictory: status === STATUS_VICTORY,
             attacks: playerAttacks,
             defenses: playerDefenses
         });
     }
 
-    resolveFight(turn, attack, defense) {
-        if (turn === STATUS_PLAYER_DEFENSE) {
-            if (isDefenseSuccess(attack, defense)) {
-                this.decrementEnemyLives();
-            } else {
-                this.decrementPlayerLives();
-            }
-        } else {
-            if (isDefenseSuccess(attack, defense)) {
-                this.decrementPlayerLives();
-            } else {
-                this.decrementEnemyLives();
-            }
-        }
+    isPlayerVictory(turn, attack, defense) {
+        return turn === STATUS_PLAYER_DEFENSE ?
+            isDefenseSuccess(attack, defense) :
+            !isDefenseSuccess(attack, defense);
     }
 
-    getLivesNextState(isPlayerVictory) {
+    getNextStateLives(isPlayerVictory) {
         const { playerLives, enemyLives } = this.state;
         return {
             playerLives: isPlayerVictory ? playerLives : playerLives - 1,
             enemyLives: isPlayerVictory ? enemyLives - 1 : enemyLives
         }
-    }
-
-    isPlayerVictory(turn, attack, defense) {
-        if (turn === STATUS_PLAYER_DEFENSE) {
-            return isDefenseSuccess(attack, defense);
-        } else {
-            return !isDefenseSuccess(attack, defense);
-        }
-    }
-
-    decrementPlayerLives() {
-        this.setState({ playerLives: this.state.playerLives - 1 });
-    }
-
-    decrementEnemyLives() {
-        this.setState({ enemyLives: this.state.enemyLives - 1 });
     }
 
     setPlayerChoose() {
@@ -305,16 +333,9 @@ export default class Game extends React.Component {
         });
     }
 
-    setEnemyDefense(attack) {
-        const defense = _.random(1, 5) >= 3 ? map[attack] : _.sample(badDefenses);
-        this.playerDefenses = _.uniq([...this.playerDefenses, defense]);
-        this.resolveFight(STATUS_PLAYER_ATTACK, attack, defense);
-        this.setState({ turn: STATUS_ENEMY_DEFENSE, defense });
-    }
-
     setNewEnemyAttack() {
         const attack = _.sample(attacks);
-        this.playerAttacks = _.uniq([...this.playerAttacks, attack]);
+        this.playerAttacks = _.uniq([attack, ...this.playerAttacks]);
         this.setState({
             turn: STATUS_ENEMY_ATTACK,
             attack,
@@ -322,11 +343,11 @@ export default class Game extends React.Component {
         });
     }
 
-    setVictory(){
+    setVictory() {
         this.setState({ turn: STATUS_VICTORY });
     }
 
-    setDefeat(){
+    setDefeat() {
         this.setState({ turn: STATUS_DEFEAT });
     }
 
@@ -338,10 +359,13 @@ export default class Game extends React.Component {
 const isDefenseSuccess = (attack, defense) => map[attack] === defense;
 
 const renderTitle = text =>
-    <Text style={[styles.dialogueTitle, styles.dialogueText]}>{text}</Text>;
+    <Text style={[styles.dialogueText, styles.dialogueTitle]}>{text}</Text>;
 
 const renderLine = text =>
     <Text style={styles.dialogueText}>{text}</Text>;
+
+const renderInfoLine = text =>
+    <Text style={[styles.dialogueText, styles.infoText]}>{text}</Text>;
 
 const renderEllipsis = () =>
     <AnimatedEllipsis style={[styles.dialogueText, styles.ellipsis]}/>;

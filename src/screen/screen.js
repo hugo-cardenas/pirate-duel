@@ -8,18 +8,10 @@ const styles = StyleSheet.create({
         width: '100%'
     },
     container: {
-        // flex: 1,
-        // flexDirection: 'column',
-        // alignItems: 'center',
-        // justifyContent: 'flex-start',
-        
         marginHorizontal: 20,
         marginTop: 40,
         marginBottom: 20,
-        backgroundColor: 'rgba(0, 0, 0, 0)',
-
-        borderColor: 'black',
-        // borderWidth: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0)'
     }
 });
 

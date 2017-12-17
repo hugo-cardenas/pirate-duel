@@ -6,7 +6,7 @@ const styles = {
     menu: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
-        marginBottom: 10,
+        marginBottom: 5,
 
         borderColor: 'green',
         // borderWidth: 1,

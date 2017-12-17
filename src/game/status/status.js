@@ -3,21 +3,18 @@ import { Image, Text, View } from 'react-native';
 import _ from 'lodash';
 import commonStyle from '../../style/common';
 
-const guybrush = require('./img/guybrush.png');
-const pirates = [
-    require('./img/pirate1.png'),
-    require('./img/pirate2.png'),
-    require('./img/pirate3.png')
-];
+const guybrush = {
+    name: 'YOU',
+    color: commonStyle.text.color,
+    img: require('./img/guybrush.png')
+}
 const heart = require('./img/heart.png');
 
 const styles = {
     gameStatus: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        height: 120,
-        marginBottom: 20,
-
+        
         borderColor: 'red',
         // borderWidth: 1
     },
@@ -27,33 +24,45 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
 
-        borderColor: 'black',
+        borderColor: 'yellow',
         // borderWidth: 1
     },
-    text: {
+    name: {
         ...commonStyle.text,
-        flex: 1,
-        color: 'white',
+        // color: 'white',
         textAlign: 'center',
+        paddingVertical: 10,
+        height: 40,
 
-        borderColor: 'black',
-        borderWidth: 1
+        borderColor: 'white',
+        // borderWidth: 1,
+
+    },
+    avatarContainer: {
+        padding: 5,
+        // paddingVertical: 10,
+        // height: '100%',
+        // width: '50%',
+
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        borderWidth: 5
+    },
+    active: {
+        borderColor: 'rgba(255, 0, 0, 0.5)',
     },
     avatar: {
-        paddingVertical: 10,
-
-        flex: 4,
-        resizeMode: 'contain',
-        height: '100%',
-        width: '100%',
-
-        borderColor: 'blue',
-        borderWidth: 1
+        width: 65,
+        height: 65,
+        resizeMode: 'contain'
     },
     lives: {
-        flex: 1,
+        paddingVertical: 10,
+        minHeight: 40,
         flexDirection: 'row',
-        justifyContent: 'center'
+        justifyContent: 'center',
+
+        borderColor: 'white',
+        // borderWidth: 1
     },
     heart: {
         height: 20,
@@ -63,33 +72,30 @@ const styles = {
 };
 
 export default class Status extends Component {
-    constructor() {
-        super();
-        this.pirate = _.sample(pirates);
-    }
-
     render() {
-        const { playerLives, enemyLives } = this.props;
+        const { pirate, isPlayerActive, playerLives, enemyLives } = this.props;
         return <View style={styles.gameStatus}>
-            {this.renderFighterStatus('YOU', guybrush, playerLives)}
-            {this.renderFighterStatus('PIRATE', this.pirate , enemyLives)}
+            {this.renderCharacterStatus(guybrush, playerLives, isPlayerActive)}
+            {this.renderCharacterStatus(pirate, enemyLives, !isPlayerActive)}
         </View>;
     }
 
-    renderFighterStatus(name, avatarSrc, numLives) {
+    renderCharacterStatus(character, numLives, isActive) {
         return <View style={styles.fighterStatus}>
-            {this.renderName(name)}
-            {this.renderAvatar(avatarSrc)}
+            {this.renderName(character.name, character.color)}
+            {this.renderAvatar(character.img, isActive)}
             {this.renderLives(numLives)}
         </View>;
     }
 
-    renderName(name) {
-        return <Text style={styles.text}>{name}</Text>;
+    renderName(name, color) {
+        return <Text style={styles.name}>{name}</Text>;
     }
 
-    renderAvatar(src) {
-        return <Image source={src} style={styles.avatar}/>;
+    renderAvatar(src, isActive) {
+        return <View style={styles.avatarContainer}>
+            <Image source={src} style={styles.avatar}/>
+        </View>;
     }
 
     renderLives(numLives) {

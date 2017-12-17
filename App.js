@@ -24,10 +24,10 @@ export default class App extends Component {
         super();
         this.state = {
             isFontLoaded: false,
-            status: STATUS_GAME,
+            status: STATUS_MAIN_MENU,
             attacks: [
                 attacks.ATTACK_FARMER,
-                attacks.ATTACK_END,
+                attacks.ATTACK_END
             ],
             defenses: Object.values(badDefenses),
             numVictories: 0,
